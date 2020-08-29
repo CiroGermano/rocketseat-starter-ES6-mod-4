@@ -1,8 +1,11 @@
+import api from './api';  // Ao importar um arquivo local não esqueça de colocar o caminho relativo ./ , senão o o módulo é procurado dentro do diretório node_modules
+
 class App {
     constructor() {
         this.repositories = [];
 
         this.formEl = document.querySelector('#repo-form');
+        this.inputEl = document.querySelector('input[name=repository]');
         this.listEl = document.querySelector('#repo-list');
 
         this.registerHandlers();
@@ -12,16 +15,27 @@ class App {
         this.formEl.onsubmit = event => this.addRepository(event);
     }
 
-    addRepository(event) {
+    async addRepository(event) {
         event.preventDefault(); // não deixa o form recarregar a página, previnindo seu comportamento padrão
 
+        const repoInput = this.inputEl.value;
+
+        if (repoInput.length === 0)
+            return;
+
+        const response = await api.get(`/repos/${repoInput}`);
+
+        const { name, owner: { avatar_url }, html_url, description } = response.data;
+
         this.repositories.push({
-            name: 'rocketseat.com.br',
-            description: 'Tire a sua ideia do papel e dê vida a sua startup.',
-            avatar_url: 'https://avatars0.githubusercontent.com/u/28929274?v=4',
-            html_url: 'http://github.com/Rocketseat',
+            name,
+            description,
+            avatar_url,
+            html_url,
         });
-        
+
+        this.inputEl.value = '';
+
         this.render();
     }
 
